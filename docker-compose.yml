@@ -1,0 +1,86 @@
+# MultiTabWatsap — full stack
+# Bring up with:    docker compose up --build -d
+# Tail logs:        docker compose logs -f api
+# Tear down:        docker compose down              (keeps volumes)
+# Wipe everything:  docker compose down -v           (drops Mongo data)
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: multiptabwatsap-mongo
+    restart: unless-stopped
+    # Comment out the `ports` block in production — only the api container
+    # needs to talk to Mongo, and exposing 27017 publicly is a foot-gun.
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - mtw
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: multiptabwatsap-api:latest
+    container_name: multiptabwatsap-api
+    # `on-failure` instead of `unless-stopped`:
+    # if the API crashes 5 times in a row (e.g. missing env var) Docker
+    # gives up instead of looping forever. After a host reboot you can
+    # bring the stack back with `docker compose up -d` like normal.
+    restart: on-failure:5
+    depends_on:
+      mongo:
+        condition: service_healthy
+    # Pull the .env file from the repo root *into the container*, so anything
+    # set there (JWT_SECRET, OTP_DEV_BYPASS, ...) is always available to
+    # process.env even after a Docker Desktop / Windows reboot.
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MONGO_URI: mongodb://mongo:27017/multiptabwatsap
+      # NOTE: the value below is the *fallback* that compose substitutes when
+      # neither the shell nor .env defines JWT_SECRET. The string itself is
+      # long enough to satisfy env.js's "non-empty" check, so the container
+      # boots — and prints a loud warning — instead of crash-looping.
+      JWT_SECRET: ${JWT_SECRET:-dev-only-fallback-please-set-JWT_SECRET-in-dotenv-file}
+      JWT_PHONE_TTL: 30m
+      JWT_ACCOUNT_TTL: 30d
+      OTP_TTL_SECONDS: 300
+      OTP_LENGTH: 6
+      OTP_DEV_RETURN: ${OTP_DEV_RETURN:-true}
+      # DEV ONLY: when "true", POST /api/auth/dev-login returns a phone token
+      # without sending or verifying any OTP. Leave false in production.
+      OTP_DEV_BYPASS: ${OTP_DEV_BYPASS:-false}
+      UPLOAD_DIR: /app/uploads
+      MAX_UPLOAD_MB: 15
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      # Optional WebRTC TURN relay for audio/video calls. Leave blank in
+      # dev — public Google STUN works for most NATs. In production set
+      # all three to point at a coturn server (or Twilio NTS / Xirsys).
+      TURN_URL: ${TURN_URL:-}
+      TURN_USER: ${TURN_USER:-}
+      TURN_PASS: ${TURN_PASS:-}
+    ports:
+      - "4000:4000"
+    volumes:
+      - api_uploads:/app/uploads
+    networks:
+      - mtw
+
+volumes:
+  mongo_data:
+  api_uploads:
+
+networks:
+  mtw:
+    driver: bridge
+

@@ -1,0 +1,88 @@
+# scripts/deploy/render.yaml
+# ---------------------------------------------------------------------------
+# Render.com Blueprint for MultiTabWatsap backend.
+#
+# What this does on Render:
+#   - Builds the backend/ Dockerfile and runs the Node + Socket.IO API.
+#   - Attaches a 1 GB persistent disk at /app/uploads (so chat photos /
+#     avatars survive deploys & restarts).
+#   - Auto-deploys on every push to the main branch.
+#
+# Free tier note:
+#   The free Render web service sleeps after 15 min of no traffic and
+#   only the first request after wake-up is slow (~30 s). For real
+#   production switch to the $7/mo Starter plan — same blueprint.
+#
+# How to use:
+#   1. Push this repo to GitHub.
+#   2. On https://dashboard.render.com -> "New" -> "Blueprint".
+#   3. Connect your GitHub account and pick this repo.
+#   4. Render reads this file, asks you to fill the secret env vars
+#      (JWT_SECRET, MONGO_URI). Fill them, click Apply.
+#   5. First build takes ~5 min. You'll get a URL like
+#      https://multiptabwatsap-api.onrender.com — point the mobile
+#      app's API_URL / SOCKET_URL at that URL.
+# ---------------------------------------------------------------------------
+
+services:
+  - type: web
+    name: multiptabwatsap-api
+    runtime: docker
+    region: oregon              # change to your nearest region
+    plan: free                  # upgrade to "starter" ($7/mo) for no sleep
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    # 1 GB persistent volume mounted where Multer writes uploads.
+    # Free plan does NOT include disks — comment this whole block out if
+    # you're staying on free tier, and use Cloudinary for uploads instead.
+    disk:
+      name: uploads
+      mountPath: /app/uploads
+      sizeGB: 1
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: CORS_ORIGIN
+        value: "*"                          # tighten once you have a web frontend domain
+
+      # Secrets — fill these in the Render dashboard, never commit them.
+      - key: JWT_SECRET
+        sync: false                         # Render will prompt you for a value
+      - key: MONGO_URI
+        sync: false                         # paste your MongoDB Atlas SRV connection string
+
+      # OTP behaviour. For real launch set OTP_DEV_BYPASS=false and wire
+      # a real SMS provider (Twilio) into backend/src/services/otp.service.js.
+      - key: OTP_DEV_BYPASS
+        value: "true"                       # set to "false" before public launch
+      - key: OTP_DEV_RETURN
+        value: "true"
+      - key: OTP_TTL_SECONDS
+        value: "300"
+      - key: OTP_LENGTH
+        value: "6"
+
+      - key: JWT_PHONE_TTL
+        value: "30m"
+      - key: JWT_ACCOUNT_TTL
+        value: "30d"
+
+      - key: UPLOAD_DIR
+        value: "/app/uploads"
+      - key: MAX_UPLOAD_MB
+        value: "15"
+
+      # Optional TURN server for calls (leave empty until you self-host coturn)
+      - key: TURN_URL
+        value: ""
+      - key: TURN_USER
+        value: ""
+      - key: TURN_PASS
+        value: ""
+

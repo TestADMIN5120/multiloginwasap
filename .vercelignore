@@ -1,0 +1,9 @@
+# scripts/deploy/.vercelignore
+# ---------------------------------------------------------------------------
+# Vercel can NOT host this project (needs WebSockets + MongoDB +
+# persistent file storage — see docs/deploy-cloud.md). Marking everything
+# as ignored so an accidental `vercel` import on the repo is a clear no-op
+# rather than silently dumping source as static files.
+# ---------------------------------------------------------------------------
+*
+
