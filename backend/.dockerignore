@@ -1,0 +1,19 @@
+# Don't ship local files into the image — keeps it small and avoids leaking dev secrets.
+node_modules
+npm-debug.log*
+.env
+.env.*
+.git
+.gitignore
+.vscode
+.idea
+README.md
+Dockerfile
+.dockerignore
+uploads/*
+!uploads/.gitkeep
+scripts/
+*.log
+coverage/
+.nyc_output/
+
