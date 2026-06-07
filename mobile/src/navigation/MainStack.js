@@ -6,6 +6,7 @@ import ChatScreen from '../screens/chats/ChatScreen';
 import ContactsScreen from '../screens/contacts/ContactsScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import AddAccountScreen from '../screens/settings/AddAccountScreen';
+import CallHistoryScreen from '../screens/calls/CallHistoryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +18,7 @@ export default function MainStack() {
       <Stack.Screen name="Contacts" component={ContactsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="AddAccount" component={AddAccountScreen} />
+      <Stack.Screen name="CallHistory" component={CallHistoryScreen} />
     </Stack.Navigator>
   );
 }

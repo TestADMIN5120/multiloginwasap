@@ -56,6 +56,10 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke-test.ps1
 
 ⚡ **One-page dev runbook with the `dev-up.ps1` / `dev-down.ps1` scripts (recommended for daily use, includes the "after Windows reboot" fix):** [docs/DEV-RUNBOOK.md](docs/DEV-RUNBOOK.md)
 
+🆘 **Phone shows "endpoint XXX-anonymous-8081.exp.direct is offline" / "Could not connect to server exp://127.0.0.1:8081" / `ERR_NGROK_3200`?** Run `powershell -ExecutionPolicy Bypass -File scripts\restart-expo.ps1` — it kills stale Metro/ngrok zombies, picks a free port (sidesteps unkillable admin-owned processes), pins the LAN IP, and verifies Metro is reachable. Full guide: [docs/fix-tunnel-offline.md](docs/fix-tunnel-offline.md)
+
+🆘 **APK login returns "Request failed with status code 404" after entering phone number?** The APK was built with a dead placeholder URL (`https://multiptabwatsap-api.onrender.com`). Use Expo Go instead, or rebuild with the right `API_URL` in `mobile/eas.json`. Full guide: [docs/fix-apk-404.md](docs/fix-apk-404.md)
+
 📞 **Audio / video calling — architecture, backend (already implemented), and mobile-side roadmap:** [docs/calls.md](docs/calls.md)
 
 In dev mode the OTP code is returned in the JSON response of `POST /api/auth/otp/request` so you don't need an SMS gateway.
@@ -83,6 +87,12 @@ npm run start
 Scan the QR code with the **Expo Go** app on your phone, or press `a` for Android emulator / `i` for iOS simulator.
 
 📱 **Full mobile install guide** (Expo Go, Android emulator, real APK build): [docs/install-mobile-app.md](docs/install-mobile-app.md)
+
+🚀 **Deploy latest code to Expo Dev (EAS Build APK / AAB):** [docs/deploy-eas.md](docs/deploy-eas.md) — one command:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\deploy-eas.ps1 -Mode lan      # same Wi-Fi
+powershell -ExecutionPolicy Bypass -File scripts\deploy-eas.ps1 -Mode tunnel   # any network (Cloudflare)
+```
 
 Even faster — let the launcher script do everything (LAN IP detection, .env wiring, firewall rules, Expo start):
 ```powershell

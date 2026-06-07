@@ -6,6 +6,8 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import { AccountProvider } from './src/context/AccountContext';
 import { SocketProvider } from './src/context/SocketContext';
+import { CallProvider } from './src/context/CallContext';
+import CallOverlay from './src/components/CallOverlay';
 import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
@@ -14,10 +16,13 @@ export default function App() {
       <SafeAreaProvider>
         <AccountProvider>
           <SocketProvider>
-            <NavigationContainer>
-              <StatusBar style="light" />
-              <RootNavigator />
-            </NavigationContainer>
+            <CallProvider>
+              <NavigationContainer>
+                <StatusBar style="light" />
+                <RootNavigator />
+                <CallOverlay />
+              </NavigationContainer>
+            </CallProvider>
           </SocketProvider>
         </AccountProvider>
       </SafeAreaProvider>

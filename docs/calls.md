@@ -1,9 +1,10 @@
 # Audio / Video Calls — Architecture & Implementation Plan
 
 This document explains how calling works in MultiTabWatsap and what's
-been built so far. **The backend signaling layer is fully implemented and
-deployed.** The mobile UI side requires switching from Expo Go to an
-Expo Dev Client (one-time setup) — see §3 below.
+been built so far. **Both backend signaling AND mobile UI are now
+implemented.** Calls work the moment you build the EAS dev/preview APK
+(see §3 below). In Expo Go the UI shows up but tapping a call button
+explains why calls need the APK build.
 
 ---
 
@@ -122,6 +123,12 @@ Key facts:
 
 ## 3. Mobile-side roadmap (what you need to do)
 
+> **Status (June 2026):** mobile UI is **complete**. All files in §3.3
+> are implemented, `app.config.js` has permissions, and
+> `react-native-webrtc` is in `package.json`. The only remaining step
+> is the one-time EAS dev-client build so the native module gets
+> compiled in.
+
 ### 3.1 Switch from Expo Go to Expo Dev Client (one-time)
 
 **Why:** `react-native-webrtc` is a native module. Expo Go is a fixed
@@ -190,22 +197,38 @@ ios: {
 
 ### 3.3 New mobile files to create
 
+> All ✅ implemented. Listed here for reference.
+
 ```
 mobile/src/
 ├── api/
-│   └── call.api.js           # listCalls(), getIceServers()
+│   └── call.api.js                  ✅ listCalls(), getIceServers(), getCall()
 ├── context/
-│   └── CallContext.js        # provider that owns the active call, peer
-│                             # connection, local/remote streams, signaling
-│                             # listeners. Single source of truth.
+│   └── CallContext.js               ✅ owns the active call, peer connection,
+│                                       streams, signaling listeners. Lazy-requires
+│                                       react-native-webrtc so Expo Go doesn't crash.
 ├── components/
-│   ├── IncomingCallSheet.js  # full-screen modal that pops up on call:ringing
-│   └── CallControls.js       # mute/end/switch-camera buttons
-└── screens/
-    └── calls/
-        ├── CallScreen.js     # in-call UI (RTCView for remote, mini self preview)
-        └── CallHistoryScreen.js
+│   ├── IncomingCallSheet.js         ✅ full-screen modal on call:ringing
+│   ├── CallOverlay.js               ✅ mounts IncomingCallSheet + CallScreen
+│   │                                   over the navigator
+│   └── CallControls.js              (folded into CallScreen — no separate file needed)
+├── screens/
+│   └── calls/
+│       ├── CallScreen.js            ✅ in-call UI (RTCView remote, self-PIP,
+│       │                               mute/end/flip-cam/speaker)
+│       └── CallHistoryScreen.js     ✅ "Calls" tab — past call history
+└── utils/
+    └── webrtc.js                    ✅ lazy-require shim so the bundle works
+                                        in Expo Go and EAS builds alike
 ```
+
+Wired in:
+- `App.js`            → `<CallProvider>` + `<CallOverlay/>`
+- `MainStack.js`      → `Stack.Screen name="CallHistory"`
+- `ChatListScreen.js` → 📞 button in header → CallHistory
+- `ChatScreen.js`     → 📞 / 🎥 buttons in header → `startCall()`
+- `app.config.js`     → CAMERA / RECORD_AUDIO / etc permissions for both platforms
+- `package.json`      → `react-native-webrtc: 124.0.5`
 
 ### 3.4 The minimum viable `CallContext` (skeleton)
 

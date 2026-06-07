@@ -1,18 +1,3 @@
-# scripts/deploy/eas.json
-# ---------------------------------------------------------------------------
-# EAS Build profile config for the Expo mobile app.
-#
-# Workflow:
-#   cd mobile
-#   npm install -g eas-cli         # one time
-#   eas login                       # one time (free Expo account)
-#   eas init                        # links project, generates a project ID
-#   eas build --profile preview --platform android
-#       -> EAS Cloud builds an APK in ~10-15 min.
-#          When done you get a URL/QR — install on your phone.
-#
-#   For release-grade builds use --profile production (signed for stores).
-# ---------------------------------------------------------------------------
 {
   "cli": {
     "version": ">= 12.0.0"
@@ -25,8 +10,8 @@
         "buildType": "apk"
       },
       "env": {
-        "API_URL":     "https://multiptabwatsap-api.onrender.com",
-        "SOCKET_URL":  "https://multiptabwatsap-api.onrender.com",
+        "API_URL": "http://192.168.1.12:4000",
+        "SOCKET_URL": "http://192.168.1.12:4000",
         "DEV_SKIP_OTP": "true"
       }
     },
@@ -36,8 +21,8 @@
         "buildType": "apk"
       },
       "env": {
-        "API_URL":     "https://multiptabwatsap-api.onrender.com",
-        "SOCKET_URL":  "https://multiptabwatsap-api.onrender.com",
+        "API_URL": "http://192.168.1.12:4000",
+        "SOCKET_URL": "http://192.168.1.12:4000",
         "DEV_SKIP_OTP": "true"
       }
     },
@@ -46,8 +31,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "API_URL":     "https://multiptabwatsap-api.onrender.com",
-        "SOCKET_URL":  "https://multiptabwatsap-api.onrender.com",
+        "API_URL": "https://REPLACE-WITH-YOUR-PUBLIC-DOMAIN.example.com",
+        "SOCKET_URL": "https://REPLACE-WITH-YOUR-PUBLIC-DOMAIN.example.com",
         "DEV_SKIP_OTP": "false"
       }
     }

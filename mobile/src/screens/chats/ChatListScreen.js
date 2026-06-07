@@ -78,9 +78,14 @@ export default function ChatListScreen({ navigation }) {
             </Text>
           ) : null}
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Text style={styles.headerAction}>⚙</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('CallHistory')}>
+            <Text style={styles.headerAction}>📞</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Text style={styles.headerAction}>⚙</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <AccountSwitcherTabs onAdd={() => navigation.navigate('AddAccount')} />

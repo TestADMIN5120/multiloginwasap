@@ -5,6 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAccount } from '../../context/AccountContext';
 import { useSocket } from '../../context/SocketContext';
+import { useCall } from '../../context/CallContext';
 import * as messageApi from '../../api/message.api';
 import MessageBubble from '../../components/MessageBubble';
 import ChatInput from '../../components/ChatInput';
@@ -14,6 +15,7 @@ export default function ChatScreen({ route, navigation }) {
   const { conversation } = route.params;
   const { activeAccount } = useAccount();
   const { socket } = useSocket();
+  const { startCall } = useCall();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typingPeer, setTypingPeer] = useState(false);
@@ -26,6 +28,17 @@ export default function ChatScreen({ route, navigation }) {
   const title = conversation.type === 'group'
     ? conversation.name || 'Group'
     : (other?.displayName || other?.username || 'Chat');
+
+  // 1:1 calls only for now — disable buttons in group chats.
+  const canCall = conversation.type === 'dm' && !!other;
+  const handleAudioCall = useCallback(() => {
+    if (!canCall) return;
+    startCall(conversation.id, 'audio', { peer: other });
+  }, [canCall, startCall, conversation.id, other]);
+  const handleVideoCall = useCallback(() => {
+    if (!canCall) return;
+    startCall(conversation.id, 'video', { peer: other });
+  }, [canCall, startCall, conversation.id, other]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -158,6 +171,22 @@ export default function ChatScreen({ route, navigation }) {
           <Text style={styles.title}>{title}</Text>
           {typingPeer ? <Text style={styles.subtitle}>typing…</Text> : null}
         </View>
+        <TouchableOpacity
+          onPress={handleVideoCall}
+          disabled={!canCall}
+          accessibilityLabel="Start video call"
+          style={[styles.callBtn, !canCall && styles.callBtnDisabled]}
+        >
+          <Text style={styles.callIcon}>🎥</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleAudioCall}
+          disabled={!canCall}
+          accessibilityLabel="Start voice call"
+          style={[styles.callBtn, !canCall && styles.callBtnDisabled]}
+        >
+          <Text style={styles.callIcon}>📞</Text>
+        </TouchableOpacity>
       </View>
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: COLORS.bg }}
@@ -190,5 +219,8 @@ const styles = StyleSheet.create({
   back: { color: '#fff', fontSize: 28, paddingHorizontal: 6 },
   title: { color: '#fff', fontSize: 17, fontWeight: '700' },
   subtitle: { color: '#fff', opacity: 0.85, fontSize: 12 },
+  callBtn: { paddingHorizontal: 8, paddingVertical: 4 },
+  callBtnDisabled: { opacity: 0.4 },
+  callIcon: { fontSize: 22 },
 });
 
